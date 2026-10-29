@@ -23,6 +23,10 @@ OpenRouter 沒有開放透明背景的 WebM 輸出，所以我用 remove_backgro
 
 含測試在內的 API 總花費：約 $2.20
 
+程式碼（MIT 授權）：github.com/wunsiang-cheng/ai-avatar-reel
+每個步驟一行指令，整支影片的分鏡都寫在一個設定檔裡，這支影片也附在裡面當範例。
+不會寫程式？repo 裡附了一份 AI agent skill。把它交給 Claude Code、Kimi Code 等 AI agent，跟它說「幫我做一支介紹……的 AI avatar 影片」，它會一步一步執行、給你看結果，每次要花錢前都會先問你。你只需要準備一把有儲值的 OpenRouter API key。
+
 影片中的人物由 AI 生成，並非真實存在。
 
 #AIavatar #HeyGen #OpenRouter #生成式AI #AI影片
