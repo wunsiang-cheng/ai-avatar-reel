@@ -1,0 +1,28 @@
+她不是真人，聲音也不是。這支 36 秒的影片，臉、聲音、對嘴影片全部透過同一把 OpenRouter API key 生成。以下是完整流程。
+
+1) 臉：openai/gpt-image-2.5-sunburst
+POST /api/v1/images，9:16，quality=high
+→ 約 28 秒產出 864×1536 PNG，$0.034
+適合做 avatar 的提示詞：正臉、看鏡頭、閉嘴微笑、柔和均勻光、下顎與耳朵露出、手不入鏡。
+
+2) 聲音：heygen/heygen-voice-1-turbo（免費版）
+POST /api/v1/audio/speech，聲音 nadine
+踩坑：回傳的是沒有檔頭的原始 PCM，取樣率要從 Content-Type 標頭讀（rate=44100）。我一開始猜 24 kHz，結果得到一段又慢又低沉的 65 秒音檔。
+
+3) 對嘴影片：heygen/avatar-iv
+POST /api/v1/videos（非同步：送出 → 輪詢 → 下載）
+輸入：人像（base64）+ 講稿 + HeyGen voice ID。音檔參考必須是公開 HTTPS 網址，所以改由 Avatar IV 用同一個聲音直接念講稿。
+輸出：1080×1920、25 fps、36.5 秒，費用 $1.82（每秒 $0.05），算圖約 5 分鐘。
+OpenRouter 沒有開放透明背景的 WebM 輸出，所以我用 remove_background 加上 0x00FF00 綠色背景，再自己去背。
+
+4) 後製：Python + ffmpeg，沒有用剪輯軟體
+• 綠幕去背 → 去溢色 → alpha 邊緣內縮 1 px（去溢色參數太強時，米白毛衣會變粉紅）
+• 字幕用 openai/whisper-large-v3 的逐字時間戳，再對齊回原始講稿，專有名詞不會拼錯或被拆開
+• Pillow 逐格繪製介面層，以 RGBA 原始資料串流給 ffmpeg 合成
+• 響度標準化到 −14 LUFS
+
+含測試在內的 API 總花費：約 $2.20
+
+影片中的人物由 AI 生成，並非真實存在。
+
+#AIavatar #HeyGen #OpenRouter #生成式AI #AI影片

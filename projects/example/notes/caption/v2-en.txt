@@ -1,0 +1,31 @@
+She's not real. Neither is her voice. Here's the exact pipeline behind this 36-second video, built with API calls through one OpenRouter key.
+
+1) FACE: openai/gpt-image-2.5-sunburst
+POST /api/v1/images, 9:16, quality=high
+→ 864×1536 PNG in ~28 s for $0.034
+Avatar-friendly prompt: front-facing, eyes to camera, closed-mouth smile, soft even light, jawline and ears visible, hands out of frame.
+
+2) VOICE: heygen/heygen-voice-1-turbo (free tier)
+POST /api/v1/audio/speech, voice "nadine"
+Gotcha: it returns raw PCM with no header. Read the sample rate from the Content-Type header (rate=44100). Guessing 24 kHz gave me a slow, deep 65-second file.
+
+3) TALKING VIDEO: heygen/avatar-iv
+POST /api/v1/videos (async: submit → poll → download)
+Input: the portrait (base64) + the script + a HeyGen voice ID. Audio references must be public HTTPS URLs, so Avatar IV synthesized the same voice from text.
+Output: 1080×1920, 25 fps, 36.5 s, lip-synced. $1.82 ($0.05/s), ~5 min render.
+Transparent WebM isn't exposed via OpenRouter, so I sent remove_background + a 0x00FF00 background and keyed it myself.
+
+4) B-ROLL: google/veo-3.1-lite (720p, no audio)
+Opening: Veo interpolates from an empty-background first frame to a last frame that equals the avatar at 1.6 s, so the cut is seamless ($0.12). Ambient background: 8 s clip, blurred, desaturated, ping-pong looped at 45% opacity ($0.24).
+
+5) POST: Python + ffmpeg, no video editor
+• Chroma key → despill → 1 px alpha erosion (an aggressive despill turned the cream sweater pink)
+• Captions timed with openai/whisper-large-v3 word timestamps, aligned back to the script so product names are never misspelled or split
+• Pillow draws every UI frame and streams raw RGBA into ffmpeg
+• Loudness normalized to −14 LUFS
+
+Total API cost incl. test runs: ≈ $2.56
+
+The person in this video is AI-generated and does not exist.
+
+#AIavatar #HeyGen #OpenRouter #GenerativeAI #AIvideo
